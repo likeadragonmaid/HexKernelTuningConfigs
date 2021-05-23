@@ -1,0 +1,283 @@
+# SPECTRUM KERNEL MANAGER
+# Ramdisk file for profile based kernel management
+# Implimentation inspired by Franco's fku profiles
+# Profiles for Redmi Note 5 Pro aka whyred by Tamas Kemenesi
+# Modified for Mi A2 by Shou
+
+# Initialization
+on property:sys.boot_completed=1
+   # Set default profile on first boot
+   exec u:r:init:s0 root root -- /vendor/etc/init/hw/init.spectrum.sh
+   exec u:r:su:s0 root root -- /vendor/etc/init/hw/init.spectrum.sh
+   # Enable Spectrum support
+   setprop spectrum.support 1
+   # Add kernel name
+   setprop persist.spectrum.kernel Hex
+
+# Balance
+on property:persist.spectrum.profile=0
+#CPU
+ #little
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq "633000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq "1843000"
+#    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 5000
+#    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 2000
+
+
+#big 
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+   restorecon -R /sys/devices/system/cpu # must restore after schedutil
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq "111300"
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq "1747000"
+#   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/down_rate_limit_us 5000
+#   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 2000
+
+#input boost
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_lp 902400
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_hp 0
+#    write /sys/module/cpu_input_boost/parameters/input_boost_duration 64
+
+#devfreq boost
+#    write /sys/module/devfreq_boost/parameters/devfreq_boost_duration 64
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq_light 1571
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq 2086
+
+#stune boost
+#    write /dev/stune/top-app/schedtune.boost 10
+#    write /dev/stune/rt/schedtune.boost 0
+
+# dynamic stune boost
+    write /sys/module/cpu_input_boost/parameters/dynamic_stune_boost 10
+
+#disable touchboost 
+    write /sys/module/msm_performance/parameters/touchboost 0
+
+#enable power efficient workqueues
+    write /sys/module/workqueue/parameters/power_efficient Y
+
+# GPU 
+    write /sys/class/kgsl/kgsl-3d0/devfreq/max_freq 266000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 160000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor "msm-adreno-tz"
+    write sys/devices/soc/5000000.qcom,kgsl-3d0/devfreq/5000000.qcom,kgsl-3d0/adrenoboost 0
+    write /sys/module/adreno_idler/parameters/adreno_idler_active 1
+
+## InternalSD read_ahead
+    write /sys/block/mmcblk0/queue/read_ahead_kb 256
+    write /sys/block/mmcblk1/queue/read_ahead_kb 256
+
+## Entropy Tweaks
+    write /proc/sys/kernel/random/read_wakeup_threshold 64
+    write /proc/sys/kernel/random/write_wakeup_threshold 896
+
+#CPUquiet
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_down_run_thresholds "0 70 200 280 330 450 515 585"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_run_thresholds "100 300 380 400 500 575 625 4294967295"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/balance_level 40
+
+
+# Performance
+on property:persist.spectrum.profile=1
+#CPU
+#little
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq "633000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq "1843000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 500
+
+
+#big 
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+   restorecon -R /sys/devices/system/cpu # must restore after schedutil
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq "1113000"
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq "2208000"
+   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/down_rate_limit_us 20000
+   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 500
+
+#input boost
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_lp 1113600
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_hp 0
+#    write /sys/module/cpu_input_boost/parameters/input_boost_duration 64
+
+#devfreq boost
+#    write /sys/module/devfreq_boost/parameters/devfreq_boost_duration 64
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq_light 1571
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq 2086
+
+#disable touchboost 
+	write /sys/module/msm_performance/parameters/touchboost 0
+# GPU 
+    write /sys/class/kgsl/kgsl-3d0/devfreq/max_freq 465000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 160000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor "msm-adreno-tz"
+    write /sys/module/adreno_idler/parameters/adreno_idler_active 0
+    write sys/devices/soc/5000000.qcom,kgsl-3d0/devfreq/5000000.qcom,kgsl-3d0/adrenoboost 0
+
+## Power Efficient Workqueue
+    chmod 0664 /sys/module/workqueue/parameters/power_efficient
+    write /sys/module/workqueue/parameters/power_efficient "N"
+
+## InternalSD read_ahead
+    write /sys/block/mmcblk0/queue/read_ahead_kb 512
+    write /sys/block/mmcblk1/queue/read_ahead_kb 512
+
+## Entropy Tweaks
+    write /proc/sys/kernel/random/read_wakeup_threshold 64
+    write /proc/sys/kernel/random/write_wakeup_threshold 896
+
+#CPUquiet
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_down_run_thresholds "0 70 200 280 330 450 515 585"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_run_thresholds "100 300 380 400 500 575 625 4294967295"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/balance_level 40
+
+#stune boost
+#    write /dev/stune/top-app/schedtune.boost 10
+#    write /dev/stune/rt/schedtune.boost 0
+
+# dynamic stune boost
+    write /sys/module/cpu_input_boost/parameters/dynamic_stune_boost 10
+
+# Battery
+on property:persist.spectrum.profile=2
+#CPU
+#little
+
+#OLD
+
+#    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+#    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+#    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq "633000"
+#    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq "1382000"
+
+
+#NEW
+
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq "633000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq "1113000"
+
+#big 
+
+
+#OLD
+
+#    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+#    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+#    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq "633000"
+#    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq "1344000"
+
+#NEW
+
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq "1113000"
+    write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq "1113000"
+    
+#input boost
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_lp 0
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_hp 0
+#    write /sys/module/cpu_input_boost/parameters/input_boost_duration 0
+
+#devfreq boost
+#    write /sys/module/devfreq_boost/parameters/devfreq_boost_duration 64
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq_light 1144
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq 1571
+
+#stune boost
+#    write /dev/stune/top-app/schedtune.boost 5
+#    write /dev/stune/rt/schedtune.boost 0
+
+# dynamic stune boost
+    write /sys/module/cpu_input_boost/parameters/dynamic_stune_boost 5
+
+#touch boost
+    write /sys/module/msm_performance/parameters/touchboost 0
+
+# GPU 
+    write /sys/class/kgsl/kgsl-3d0/devfreq/max_freq 160000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 160000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor "msm-adreno-tz"
+    write sys/devices/soc/5000000.qcom,kgsl-3d0/devfreq/5000000.qcom,kgsl-3d0/adrenoboost 0
+    write /sys/module/adreno_idler/parameters/adreno_idler_active 1
+
+## Power Efficient Workqueue
+    chmod 0664 /sys/module/workqueue/parameters/power_efficient
+    write /sys/module/workqueue/parameters/power_efficient "Y"
+## InternalSD read_ahead_kb 
+    write /sys/block/mmcblk0/queue/read_ahead_kb 256
+    write /sys/block/mmcblk1/queue/read_ahead_kb 256
+## Entropy Tweaks
+    write /proc/sys/kernel/random/read_wakeup_threshold 256
+    write /proc/sys/kernel/random/write_wakeup_threshold 512
+
+#CPUquiet
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_down_run_thresholds "0 120 320 400 440 500 550 700"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_run_thresholds "200 450 550 580 600 640 750 4294967295"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/balance_level 80
+
+
+# Gaming
+on property:persist.spectrum.profile=3
+#CPU
+#little
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor schedutil
+    restorecon -R /sys/devices/system/cpu # must restore after schedutil
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq "633000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq "1843000"
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/down_rate_limit_us 20000
+    write /sys/devices/system/cpu/cpu0/cpufreq/schedutil/up_rate_limit_us 500
+
+
+#big 
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_governor schedutil
+   restorecon -R /sys/devices/system/cpu # must restore after schedutil
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_min_freq "1113000"
+   write /sys/devices/system/cpu/cpu4/cpufreq/scaling_max_freq "2208000"
+   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/down_rate_limit_us 20000
+   write /sys/devices/system/cpu/cpu4/cpufreq/schedutil/up_rate_limit_us 500
+
+#input boost
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_lp 1401600
+#    write /sys/module/cpu_input_boost/parameters/input_boost_freq_hp 1401600
+#    write /sys/module/cpu_input_boost/parameters/input_boost_duration 64
+
+#devfreq boost
+#    write /sys/module/devfreq_boost/parameters/devfreq_boost_duration 64
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq_light 1571
+#    write /sys/module/devfreq_boost/parameters/devfreq_msm_cpubw_boost_freq 2597
+
+#stune boost
+#    write /dev/stune/top-app/schedtune.boost 15
+#    write /dev/stune/rt/schedtune.boost 0
+
+# dynamic stune boost
+    write /sys/module/cpu_input_boost/parameters/dynamic_stune_boost 15
+
+#GPU
+    write /sys/class/kgsl/kgsl-3d0/devfreq/max_freq 647000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/min_freq 160000000
+    write /sys/class/kgsl/kgsl-3d0/devfreq/governor "msm-adreno-tz"
+    write /sys/module/adreno_idler/parameters/adreno_idler_active 0
+    write sys/devices/soc/5000000.qcom,kgsl-3d0/devfreq/5000000.qcom,kgsl-3d0/adrenoboost 3
+
+ ## Power Efficient Workqueue
+    chmod 0664 /sys/module/workqueue/parameters/power_efficient
+    write /sys/module/workqueue/parameters/power_efficient "N"
+
+## InternalSD read_ahead
+    write /sys/block/mmcblk0/queue/read_ahead_kb 512
+    write /sys/block/mmcblk1/queue/read_ahead_kb 512
+
+## Entropy Tweaks
+    write /proc/sys/kernel/random/read_wakeup_threshold 64
+    write /proc/sys/kernel/random/write_wakeup_threshold 896
+
+#CPUquiet
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_down_run_thresholds "0 70 200 280 330 450 515 585"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/nr_run_thresholds "100 300 380 400 500 575 625 4294967295"
+#write /sys/devices/system/cpu/cpuquiet/rqbalance/balance_level 40
